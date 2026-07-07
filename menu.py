@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from discord import app_commands
-import menu_data  # Assicurati di avere il file menu_data.py nella cartella principale
+import menu_data
 
 class Menu(commands.Cog):
     def __init__(self, bot):
@@ -12,7 +12,6 @@ class Menu(commands.Cog):
         embed = discord.Embed(title="🏮 Izakaya no Menu — 居酒屋のメニュー", color=0xFF4500)
         embed.description = "Benvenuto! Ecco cosa serviamo stasera.\nUsa `/buy [chiave]` per ordinare o `/offer [chiave] @utente` per offrire!"
 
-        # Organizza gli item del menu per categoria
         categories = {}
         for key, info in menu_data.MENU.items():
             cat = info['category']
@@ -32,7 +31,6 @@ class Menu(commands.Cog):
         if not item:
             return await interaction.response.send_message("❌ Item non trovato! Controlla il `/menu`.", ephemeral=True)
         
-        # Tentativo di acquisto tramite il database
         success = await self.bot.db.buy_item(interaction.user.id, item['price'])
         if not success:
             return await interaction.response.send_message("❌ Saldo insufficiente!", ephemeral=True)
@@ -66,7 +64,6 @@ class Menu(commands.Cog):
         nomi = ", ".join([m.display_name for m in members])
         await interaction.response.send_message(f"🍻 {interaction.user.mention} offre un giro di Sake a: {nomi}!")
 
-    # Autocomplete per facilitare la scelta della chiave
     @buy.autocomplete("chiave")
     @offer.autocomplete("chiave")
     async def item_autocomplete(self, interaction: discord.Interaction, current: str):
@@ -74,7 +71,7 @@ class Menu(commands.Cog):
             app_commands.Choice(name=val['label'], value=key)
             for key, val in menu_data.MENU.items()
             if current.lower() in key.lower()
-        ]
+        ][:25]
 
 async def setup(bot):
     await bot.add_cog(Menu(bot))
